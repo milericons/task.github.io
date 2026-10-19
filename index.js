@@ -21,6 +21,8 @@ const formMessageText = document.querySelector("#form-message-text");
 const activityList = document.querySelector("#activity-list");
 const emptyState = document.querySelector("#empty-state");
 const activityCount = document.querySelector("#activity-count");
+const exportButton = document.querySelector("#export-button");
+const exportMessage = document.querySelector("#export-message");
 
 let selectedType = "";
 let storageReady = true;
@@ -160,8 +162,45 @@ function renderActivities() {
     activityList.replaceChildren(...sortedActivities.map(createActivityCard));
     const total = activities.length;
     activityCount.textContent = String(total);
+    exportButton.disabled = total === 0;
     emptyState.hidden = total > 0;
     if (window.MillerIcons) window.MillerIcons.scan(activityList);
+}
+
+function exportActivitiesToExcel() {
+    exportMessage.hidden = true;
+    exportMessage.textContent = "";
+
+    if (activities.length === 0) return;
+    if (!window.XLSX) {
+        const error = new Error("La librería para crear archivos Excel no está disponible.");
+        console.error("No se pudo preparar la descarga de actividades.", error);
+        exportMessage.textContent = "No se pudo cargar el exportador de Excel. Comprueba tu conexión e inténtalo de nuevo.";
+        exportMessage.hidden = false;
+        return;
+    }
+
+    try {
+        const sortedActivities = [...activities].sort((first, second) => second.date.localeCompare(first.date));
+        const rows = [
+            ["Fecha", "Tipo de actividad", "Descripción"],
+            ...sortedActivities.map((activity) => {
+                const [year, month, day] = activity.date.split("-").map(Number);
+                return [new Date(year, month - 1, day), activity.type, activity.description];
+            })
+        ];
+        const worksheet = window.XLSX.utils.aoa_to_sheet(rows, { cellDates: true });
+        worksheet["!cols"] = [{ wch: 14 }, { wch: 22 }, { wch: 72 }];
+        worksheet["!autofilter"] = { ref: `A1:C${rows.length}` };
+
+        const workbook = window.XLSX.utils.book_new();
+        window.XLSX.utils.book_append_sheet(workbook, worksheet, "Actividades");
+        window.XLSX.writeFile(workbook, `actividades-empresa-${localDateString()}.xlsx`);
+    } catch (error) {
+        console.error("No se pudo generar el archivo Excel de actividades.", error);
+        exportMessage.textContent = "No se pudo generar el archivo Excel. Inténtalo de nuevo.";
+        exportMessage.hidden = false;
+    }
 }
 
 function openTypeOptions(focusIndex = -1) {
@@ -190,6 +229,8 @@ function chooseType(option) {
 const activities = loadActivities();
 dateInput.value = localDateString();
 renderActivities();
+
+exportButton.addEventListener("click", exportActivitiesToExcel);
 
 typeTrigger.addEventListener("click", () => {
     const isOpen = typeTrigger.getAttribute("aria-expanded") === "true";

@@ -8,6 +8,7 @@
     <title>Actividades — Miler Task</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://milericons.github.io/outline.github.io/public/miller-icons.js" defer></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
     <script src="index.js" defer></script>
 </head>
 <body>
@@ -122,8 +123,15 @@
                             <p class="eyebrow">TU REGISTRO</p>
                             <h2 id="history-title">Actividades recientes</h2>
                         </div>
-                        <span class="activity-count" id="activity-count">0</span>
+                        <div class="history-actions">
+                            <button class="export-button" id="export-button" type="button" disabled>
+                                <span class="miller-icon" data-icon="download" aria-hidden="true"></span>
+                                Descargar Excel
+                            </button>
+                            <span class="activity-count" id="activity-count">0</span>
+                        </div>
                     </div>
+                    <p class="export-message" id="export-message" role="status" aria-live="polite" hidden></p>
                     <div class="activity-list" id="activity-list" aria-live="polite"></div>
                     <div class="empty-state" id="empty-state">
                         <span class="empty-icon" aria-hidden="true">
