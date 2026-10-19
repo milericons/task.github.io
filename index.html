@@ -72,6 +72,10 @@
                                         <span class="option-icon" aria-hidden="true"><span class="miller-icon" data-icon="megaphone"></span></span>
                                         <span>Publicidad</span>
                                     </button>
+                                    <button class="select-option" type="button" role="option" aria-selected="false" data-value="Mantenimiento" data-icon="tools">
+                                        <span class="option-icon" aria-hidden="true"><span class="miller-icon" data-icon="tools"></span></span>
+                                        <span>Mantenimiento</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -98,7 +102,12 @@
                             </div>
                         </div>
 
-                        <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+                        <p class="form-message" id="form-message" role="alert" aria-live="assertive" aria-atomic="true" hidden>
+                            <span class="message-icon" aria-hidden="true">
+                                <span class="miller-icon" data-icon="information"></span>
+                            </span>
+                            <span id="form-message-text"></span>
+                        </p>
                         <button class="save-button" type="submit">
                             <span class="miller-icon" data-icon="add" aria-hidden="true"></span>
                             Guardar actividad

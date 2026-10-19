@@ -2,7 +2,8 @@ const STORAGE_KEY = "miler-task-activities";
 const ACTIVITY_TYPES = {
     "Desarrollo": "code",
     "Diseño gráfico": "palette",
-    "Publicidad": "megaphone"
+    "Publicidad": "megaphone",
+    "Mantenimiento": "tools"
 };
 
 const form = document.querySelector("#activity-form");
@@ -16,6 +17,7 @@ const descriptionInput = document.querySelector("#activity-description");
 const dateInput = document.querySelector("#activity-date");
 const characterCount = document.querySelector("#character-count");
 const formMessage = document.querySelector("#form-message");
+const formMessageText = document.querySelector("#form-message-text");
 const activityList = document.querySelector("#activity-list");
 const emptyState = document.querySelector("#empty-state");
 const activityCount = document.querySelector("#activity-count");
@@ -41,7 +43,8 @@ function isValidDateString(value) {
 }
 
 function setMessage(message, isError = false) {
-    formMessage.textContent = message;
+    formMessageText.textContent = message;
+    formMessage.hidden = !message;
     formMessage.classList.toggle("is-error", isError);
 }
 

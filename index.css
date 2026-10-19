@@ -380,18 +380,65 @@ textarea:focus,
 }
 
 .form-message {
-    min-height: 0;
-    margin: -5px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    margin: 2px 0 14px;
+    padding: 12px 14px;
+    border: 1px solid #dce9dd;
+    border-radius: 14px;
+    background: linear-gradient(110deg, #f1f7f0, #fbfdfb);
+    box-shadow: 0 7px 18px rgba(35, 46, 34, 0.07), 0 2px 5px rgba(35, 46, 34, 0.035);
     color: var(--accent-dark);
-    font-size: 11px;
+    font-size: 12px;
+    font-weight: 550;
+    line-height: 1.45;
+    animation: alert-enter 220ms ease both;
+}
+
+.form-message[hidden] {
+    display: none;
+}
+
+.message-icon {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid #dce9dd;
+    border-radius: 10px;
+    background: #e6f0e5;
+    color: #557b5c;
+}
+
+.message-icon .miller-icon {
+    width: 16px;
+    height: 16px;
+}
+
+@keyframes alert-enter {
+    from {
+        opacity: 0;
+        transform: translateY(5px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .form-message.is-error {
-    color: #a3483c;
+    border-color: #f0d3ce;
+    background: linear-gradient(110deg, #fff3f0, #fffafa);
+    box-shadow: 0 7px 18px rgba(135, 58, 48, 0.09), 0 2px 5px rgba(135, 58, 48, 0.04);
+    color: #9d4036;
 }
 
-.form-message:empty {
-    display: none;
+.form-message.is-error .message-icon {
+    border-color: #f0d3ce;
+    background: #fbe7e2;
+    color: #b14e42;
 }
 
 .save-button {
