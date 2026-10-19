@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f6f7f5">
+    <meta name="description" content="Registra y organiza las actividades realizadas en tu empresa.">
+    <title>Actividades — Miler Task</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="https://milericons.github.io/outline.github.io/public/miller-icons.js" defer></script>
+    <script src="index.js" defer></script>
+</head>
+<body>
+    <div class="app-shell">
+        <header class="topbar">
+            <a class="brand" href="#" aria-label="Miler Task, inicio">
+                <span class="brand-mark" aria-hidden="true">
+                    <span class="miller-icon" data-icon="clipboard"></span>
+                </span>
+                <span>Miler<span class="brand-light">Task</span></span>
+            </a>
+            <div class="storage-indicator">
+                <span class="storage-dot" aria-hidden="true"></span>
+                Guardado en este dispositivo
+            </div>
+        </header>
+
+        <main>
+            <div class="workspace">
+                <section class="panel form-panel" aria-labelledby="form-title">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">NUEVA ENTRADA</p>
+                            <h2 id="form-title">¿Qué hiciste hoy?</h2>
+                        </div>
+                        <span class="heading-icon" aria-hidden="true">
+                            <span class="miller-icon" data-icon="add"></span>
+                        </span>
+                    </div>
+
+                    <form id="activity-form" novalidate>
+                        <div class="field">
+                            <span class="field-label" id="type-label">Tipo de actividad</span>
+                            <div class="custom-select" id="type-select">
+                                <button
+                                    class="select-trigger"
+                                    id="type-trigger"
+                                    type="button"
+                                    aria-labelledby="type-label type-value"
+                                    aria-haspopup="listbox"
+                                    aria-expanded="false"
+                                    aria-controls="type-options"
+                                >
+                                    <span class="select-leading" id="type-leading" aria-hidden="true">
+                                        <span class="miller-icon" data-icon="code"></span>
+                                    </span>
+                                    <span id="type-value">Selecciona una categoría</span>
+                                    <span class="select-chevron" aria-hidden="true">
+                                        <span class="miller-icon" data-icon="arrow_down"></span>
+                                    </span>
+                                </button>
+                                <div class="select-options" id="type-options" role="listbox" aria-labelledby="type-label" hidden>
+                                    <button class="select-option" type="button" role="option" aria-selected="false" data-value="Desarrollo" data-icon="code">
+                                        <span class="option-icon" aria-hidden="true"><span class="miller-icon" data-icon="code"></span></span>
+                                        <span>Desarrollo</span>
+                                    </button>
+                                    <button class="select-option" type="button" role="option" aria-selected="false" data-value="Diseño gráfico" data-icon="palette">
+                                        <span class="option-icon" aria-hidden="true"><span class="miller-icon" data-icon="palette"></span></span>
+                                        <span>Diseño gráfico</span>
+                                    </button>
+                                    <button class="select-option" type="button" role="option" aria-selected="false" data-value="Publicidad" data-icon="megaphone">
+                                        <span class="option-icon" aria-hidden="true"><span class="miller-icon" data-icon="megaphone"></span></span>
+                                        <span>Publicidad</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="activity-description">Descripción</label>
+                            <textarea
+                                id="activity-description"
+                                name="description"
+                                placeholder="Describe brevemente el trabajo realizado..."
+                                rows="5"
+                            ></textarea>
+                            <div class="field-footnote">
+                                <span>Hasta 500 caracteres</span>
+                                <span id="character-count" aria-live="polite">0 / 500</span>
+                            </div>
+                        </div>
+
+                        <div class="field">
+                            <label class="field-label" for="activity-date">Fecha</label>
+                            <div class="date-input-wrap">
+                                <span class="date-icon" aria-hidden="true"><span class="miller-icon" data-icon="calendar"></span></span>
+                                <input id="activity-date" name="date" type="date">
+                            </div>
+                        </div>
+
+                        <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+                        <button class="save-button" type="submit">
+                            <span class="miller-icon" data-icon="add" aria-hidden="true"></span>
+                            Guardar actividad
+                        </button>
+                        <p class="privacy-note">Tus registros se guardan solo en este navegador.</p>
+                    </form>
+                </section>
+
+                <section class="panel history-panel" aria-labelledby="history-title">
+                    <div class="panel-heading history-heading">
+                        <div>
+                            <p class="eyebrow">TU REGISTRO</p>
+                            <h2 id="history-title">Actividades recientes</h2>
+                        </div>
+                        <span class="activity-count" id="activity-count">0</span>
+                    </div>
+                    <div class="activity-list" id="activity-list" aria-live="polite"></div>
+                    <div class="empty-state" id="empty-state">
+                        <span class="empty-icon" aria-hidden="true">
+                            <span class="miller-icon" data-icon="clipboard"></span>
+                        </span>
+                        <h3>Aún no hay actividades</h3>
+                        <p>Cuando guardes una actividad, aparecerá aquí.</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+        <footer class="page-footer">
+            <span>Hecho para mantener tu trabajo en marcha.</span>
+            <span class="footer-mark">MILER TASK <span aria-hidden="true">·</span> PERSONAL</span>
+        </footer>
+    </div>
+</body>
+</html>
