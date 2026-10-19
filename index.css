@@ -543,6 +543,10 @@ textarea:focus,
     display: none;
 }
 
+.export-message.is-success {
+    color: #4f7154;
+}
+
 .activity-count {
     display: grid;
     min-width: 29px;

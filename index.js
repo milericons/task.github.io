@@ -1,4 +1,5 @@
 const STORAGE_KEY = "miler-task-activities";
+const EXCELJS_FALLBACK_URL = "https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js";
 const ACTIVITY_TYPES = {
     "Desarrollo": "code",
     "Diseño gráfico": "palette",
@@ -23,6 +24,8 @@ const emptyState = document.querySelector("#empty-state");
 const activityCount = document.querySelector("#activity-count");
 const exportButton = document.querySelector("#export-button");
 const exportMessage = document.querySelector("#export-message");
+const importButton = document.querySelector("#import-button");
+const importInput = document.querySelector("#import-input");
 
 let selectedType = "";
 let storageReady = true;
@@ -167,39 +170,222 @@ function renderActivities() {
     if (window.MillerIcons) window.MillerIcons.scan(activityList);
 }
 
-function exportActivitiesToExcel() {
+function ensureExcelJS() {
+    if (window.ExcelJS) return Promise.resolve(true);
+
+    return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = EXCELJS_FALLBACK_URL;
+        script.onload = () => resolve(Boolean(window.ExcelJS));
+        script.onerror = () => resolve(false);
+        document.head.append(script);
+    });
+}
+
+async function exportActivitiesToExcel() {
     exportMessage.hidden = true;
     exportMessage.textContent = "";
+    exportMessage.classList.remove("is-success");
 
     if (activities.length === 0) return;
-    if (!window.XLSX) {
-        const error = new Error("La librería para crear archivos Excel no está disponible.");
-        console.error("No se pudo preparar la descarga de actividades.", error);
+
+    if (!(await ensureExcelJS())) {
         exportMessage.textContent = "No se pudo cargar el exportador de Excel. Comprueba tu conexión e inténtalo de nuevo.";
         exportMessage.hidden = false;
         return;
     }
 
     try {
-        const sortedActivities = [...activities].sort((first, second) => second.date.localeCompare(first.date));
-        const rows = [
-            ["Fecha", "Tipo de actividad", "Descripción"],
-            ...sortedActivities.map((activity) => {
-                const [year, month, day] = activity.date.split("-").map(Number);
-                return [new Date(year, month - 1, day), activity.type, activity.description];
-            })
-        ];
-        const worksheet = window.XLSX.utils.aoa_to_sheet(rows, { cellDates: true });
-        worksheet["!cols"] = [{ wch: 14 }, { wch: 22 }, { wch: 72 }];
-        worksheet["!autofilter"] = { ref: `A1:C${rows.length}` };
+        const workbook = new window.ExcelJS.Workbook();
+        workbook.creator = "Miler Task";
+        workbook.created = new Date();
 
-        const workbook = window.XLSX.utils.book_new();
-        window.XLSX.utils.book_append_sheet(workbook, worksheet, "Actividades");
-        window.XLSX.writeFile(workbook, `actividades-empresa-${localDateString()}.xlsx`);
+        const sheet = workbook.addWorksheet("Actividades", {
+            views: [{ state: "frozen", ySplit: 1 }]
+        });
+        sheet.columns = [
+            { header: "Fecha", key: "date", width: 14 },
+            { header: "Tipo de actividad", key: "type", width: 22 },
+            { header: "Descripción", key: "description", width: 72 }
+        ];
+        sheet.autoFilter = "A1:C1";
+
+        const thinBorder = { style: "thin", color: { argb: "FFD9E0D7" } };
+        const cellBorder = { top: thinBorder, left: thinBorder, bottom: thinBorder, right: thinBorder };
+        const headerFill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF416749" } };
+        const stripeFill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEDF4EC" } };
+
+        const headerRow = sheet.getRow(1);
+        headerRow.height = 24;
+        headerRow.eachCell((cell) => {
+            cell.fill = headerFill;
+            cell.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 11 };
+            cell.border = cellBorder;
+            cell.alignment = { vertical: "middle" };
+        });
+
+        const sortedActivities = [...activities].sort((first, second) => second.date.localeCompare(first.date));
+        sortedActivities.forEach((activity, index) => {
+            const [year, month, day] = activity.date.split("-").map(Number);
+            const row = sheet.addRow({
+                date: new Date(Date.UTC(year, month - 1, day)),
+                type: activity.type,
+                description: activity.description
+            });
+            row.eachCell((cell) => {
+                cell.border = cellBorder;
+                if (index % 2 === 1) cell.fill = stripeFill;
+            });
+            row.getCell(1).numFmt = "dd/mm/yyyy";
+            row.getCell(3).alignment = { wrapText: true, vertical: "top" };
+        });
+
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `actividades-empresa-${localDateString()}.xlsx`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+
+        exportMessage.textContent = "Archivo descargado correctamente.";
+        exportMessage.hidden = false;
     } catch (error) {
         console.error("No se pudo generar el archivo Excel de actividades.", error);
         exportMessage.textContent = "No se pudo generar el archivo Excel. Inténtalo de nuevo.";
         exportMessage.hidden = false;
+    }
+}
+
+function cellTextValue(value) {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "object") {
+        if (value instanceof Date) return value;
+        if (Array.isArray(value.richText)) return value.richText.map((part) => part.text).join("");
+        if (value.text !== undefined) return String(value.text ?? "");
+        if (value.result !== undefined) return value.result;
+    }
+    return value;
+}
+
+function parseImportedDate(value) {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return `${value.getUTCFullYear()}-${String(value.getUTCMonth() + 1).padStart(2, "0")}-${String(value.getUTCDate()).padStart(2, "0")}`;
+    }
+
+    if (typeof value === "number" && Number.isFinite(value)) {
+        const utcDate = new Date(Math.round((value - 25569) * 86400000));
+        if (Number.isNaN(utcDate.getTime())) return null;
+        return `${utcDate.getUTCFullYear()}-${String(utcDate.getUTCMonth() + 1).padStart(2, "0")}-${String(utcDate.getUTCDate()).padStart(2, "0")}`;
+    }
+
+    if (typeof value !== "string") return null;
+
+    const text = value.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return isValidDateString(text) ? text : null;
+
+    const slashMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (slashMatch) {
+        const [, day, month, year] = slashMatch;
+        const isoDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        return isValidDateString(isoDate) ? isoDate : null;
+    }
+
+    const parsed = new Date(text);
+    if (Number.isNaN(parsed.getTime())) return null;
+    return localDateString(parsed);
+}
+
+async function importActivitiesFromExcel(file) {
+    exportMessage.hidden = true;
+    exportMessage.textContent = "";
+
+    if (!file) return;
+
+    if (!storageReady) {
+        setMessage("No se puede importar hasta resolver el problema con los datos locales.", true);
+        return;
+    }
+
+    if (!(await ensureExcelJS())) {
+        setMessage("No se pudo cargar el lector de Excel. Comprueba tu conexión e inténtalo de nuevo.", true);
+        return;
+    }
+
+    try {
+        const buffer = await file.arrayBuffer();
+        const workbook = new window.ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
+
+        const sheet = workbook.worksheets[0];
+        if (!sheet || sheet.actualRowCount === 0) {
+            setMessage("El archivo no contiene actividades.", true);
+            return;
+        }
+
+        const headers = [];
+        sheet.getRow(1).eachCell({ includeEmpty: false }, (cell, columnIndex) => {
+            headers[columnIndex] = String(cellTextValue(cell.value) ?? "").trim().toLowerCase();
+        });
+
+        const dateColumn = headers.findIndex((header) => header === "fecha");
+        const typeColumn = headers.findIndex((header) => header === "tipo de actividad");
+        const descriptionColumn = headers.findIndex((header) => header === "descripción" || header === "descripcion");
+
+        if (dateColumn === -1 || typeColumn === -1 || descriptionColumn === -1) {
+            setMessage("El archivo no tiene el formato esperado. Usa un archivo exportado desde esta app (Fecha, Tipo de actividad, Descripción).", true);
+            return;
+        }
+
+        const knownTypes = new Set(Object.keys(ACTIVITY_TYPES));
+        const existingKeys = new Set(activities.map((activity) => `${activity.date}|${activity.type}|${activity.description}`));
+        const imported = [];
+        let ignored = 0;
+
+        sheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return;
+
+            const date = parseImportedDate(cellTextValue(row.getCell(dateColumn).value));
+            const type = String(cellTextValue(row.getCell(typeColumn).value) ?? "").trim();
+            const description = String(cellTextValue(row.getCell(descriptionColumn).value) ?? "").trim();
+
+            if (!date || !knownTypes.has(type) || !description || description.length > 500) {
+                ignored += 1;
+                return;
+            }
+
+            const key = `${date}|${type}|${description}`;
+            if (existingKeys.has(key)) {
+                ignored += 1;
+                return;
+            }
+
+            existingKeys.add(key);
+            imported.push({ id: crypto.randomUUID(), type, description, date });
+        });
+
+        if (imported.length === 0) {
+            setMessage(ignored > 0 ? "No se importaron actividades: no hay filas válidas nuevas en el archivo." : "El archivo no contiene actividades.", true);
+            return;
+        }
+
+        const nextActivities = [...imported, ...activities];
+        if (!persistActivities(nextActivities)) return;
+
+        activities.splice(0, activities.length, ...nextActivities);
+        renderActivities();
+
+        const importedLabel = imported.length === 1 ? "1 actividad" : `${imported.length} actividades`;
+        const ignoredLabel = ignored > 0 ? ` · ${ignored} fila${ignored === 1 ? "" : "s"} ignorada${ignored === 1 ? "" : "s"}` : "";
+        setMessage(`Se importaron ${importedLabel}${ignoredLabel}.`);
+    } catch (error) {
+        console.error("No se pudo importar el archivo Excel.", error);
+        setMessage("No se pudo leer el archivo. Comprueba que sea un .xlsx válido.", true);
+    } finally {
+        importInput.value = "";
     }
 }
 
@@ -231,6 +417,13 @@ dateInput.value = localDateString();
 renderActivities();
 
 exportButton.addEventListener("click", exportActivitiesToExcel);
+
+importButton.addEventListener("click", () => importInput.click());
+
+importInput.addEventListener("change", () => {
+    const [file] = importInput.files;
+    if (file) importActivitiesFromExcel(file);
+});
 
 typeTrigger.addEventListener("click", () => {
     const isOpen = typeTrigger.getAttribute("aria-expanded") === "true";
