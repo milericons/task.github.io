@@ -214,15 +214,18 @@ async function exportActivitiesToExcel() {
 
     if (activities.length === 0) return;
 
-    if (!(await ensureExcelJS())) {
-        exportMessage.textContent = "No se pudo cargar el exportador de Excel. Comprueba tu conexión e inténtalo de nuevo.";
-        exportMessage.hidden = false;
-        return;
-    }
-
     exportButton.disabled = true;
     try {
-        await runExportProgress();
+        const [libraryReady] = await Promise.all([
+            ensureExcelJS(),
+            runExportProgress(2000)
+        ]);
+
+        if (!libraryReady) {
+            exportMessage.textContent = "No se pudo cargar el exportador de Excel. Comprueba tu conexión e inténtalo de nuevo.";
+            exportMessage.hidden = false;
+            return;
+        }
 
         const workbook = new window.ExcelJS.Workbook();
         workbook.creator = "Miler Task";
