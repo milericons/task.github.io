@@ -24,6 +24,10 @@ const emptyState = document.querySelector("#empty-state");
 const activityCount = document.querySelector("#activity-count");
 const exportButton = document.querySelector("#export-button");
 const exportMessage = document.querySelector("#export-message");
+const actionsMenu = document.querySelector("#actions-menu");
+const actionsTrigger = document.querySelector("#actions-trigger");
+const actionsOptions = document.querySelector("#actions-options");
+const actionOptions = [...actionsOptions.querySelectorAll(".action-option")];
 const importButton = document.querySelector("#import-button");
 const importInput = document.querySelector("#import-input");
 
@@ -423,6 +427,58 @@ importButton.addEventListener("click", () => importInput.click());
 importInput.addEventListener("change", () => {
     const [file] = importInput.files;
     if (file) importActivitiesFromExcel(file);
+});
+
+function openActionsMenu(focusIndex = -1) {
+    actionsOptions.hidden = false;
+    actionsTrigger.setAttribute("aria-expanded", "true");
+    if (focusIndex >= 0) actionOptions[focusIndex].focus();
+}
+
+function closeActionsMenu(returnFocus = false) {
+    actionsOptions.hidden = true;
+    actionsTrigger.setAttribute("aria-expanded", "false");
+    if (returnFocus) actionsTrigger.focus();
+}
+
+actionsTrigger.addEventListener("click", () => {
+    const isOpen = actionsTrigger.getAttribute("aria-expanded") === "true";
+    if (isOpen) {
+        closeActionsMenu();
+    } else {
+        openActionsMenu();
+    }
+});
+
+actionsTrigger.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        openActionsMenu(event.key === "ArrowDown" ? 0 : actionOptions.length - 1);
+    }
+});
+
+actionOptions.forEach((option, index) => {
+    option.addEventListener("click", () => closeActionsMenu());
+    option.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            closeActionsMenu(true);
+        } else if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            const step = event.key === "ArrowDown" ? 1 : -1;
+            actionOptions[(index + step + actionOptions.length) % actionOptions.length].focus();
+        } else if (event.key === "Home") {
+            event.preventDefault();
+            actionOptions[0].focus();
+        } else if (event.key === "End") {
+            event.preventDefault();
+            actionOptions[actionOptions.length - 1].focus();
+        }
+    });
+});
+
+document.addEventListener("click", (event) => {
+    if (!actionsMenu.contains(event.target)) closeActionsMenu();
 });
 
 typeTrigger.addEventListener("click", () => {

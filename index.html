@@ -124,14 +124,29 @@
                             <h2 id="history-title">Actividades recientes</h2>
                         </div>
                         <div class="history-actions">
-                            <button class="export-button" id="import-button" type="button">
-                                <span class="miller-icon" data-icon="upload" aria-hidden="true"></span>
-                                Cargar Excel
-                            </button>
-                            <button class="export-button" id="export-button" type="button" disabled>
-                                <span class="miller-icon" data-icon="download" aria-hidden="true"></span>
-                                Descargar Excel
-                            </button>
+                            <div class="actions-menu" id="actions-menu">
+                                <button
+                                    class="export-button actions-trigger"
+                                    id="actions-trigger"
+                                    type="button"
+                                    aria-haspopup="menu"
+                                    aria-expanded="false"
+                                    aria-controls="actions-options"
+                                    aria-label="Acciones sobre el archivo Excel"
+                                >
+                                    <span class="miller-icon" data-icon="more_vertical" aria-hidden="true"></span>
+                                </button>
+                                <div class="actions-options" id="actions-options" role="menu" aria-label="Acciones de Excel" hidden>
+                                    <button class="action-option" id="import-button" type="button" role="menuitem">
+                                        <span class="miller-icon" data-icon="upload" aria-hidden="true"></span>
+                                        Cargar Excel
+                                    </button>
+                                    <button class="action-option" id="export-button" type="button" role="menuitem" disabled>
+                                        <span class="miller-icon" data-icon="download" aria-hidden="true"></span>
+                                        Descargar Excel
+                                    </button>
+                                </div>
+                            </div>
                             <span class="activity-count" id="activity-count">0</span>
                         </div>
                         <input type="file" id="import-input" accept=".xlsx,.xlsm" hidden>
