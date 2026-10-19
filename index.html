@@ -151,6 +151,12 @@
                         </div>
                         <input type="file" id="import-input" accept=".xlsx,.xlsm" hidden>
                     </div>
+                    <div class="export-progress" id="export-progress" hidden>
+                        <span class="miller-icon progress-icon" data-icon="progress" aria-hidden="true"></span>
+                        <div class="progress-track" aria-hidden="true">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                    </div>
                     <p class="export-message" id="export-message" role="status" aria-live="polite" hidden></p>
                     <div class="activity-list" id="activity-list" aria-live="polite"></div>
                     <div class="empty-state" id="empty-state">

@@ -543,8 +543,44 @@ textarea:focus,
     display: none;
 }
 
-.export-message.is-success {
-    color: #4f7154;
+.export-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: -4px 0 13px;
+}
+
+.export-progress[hidden] {
+    display: none;
+}
+
+.export-progress .progress-icon {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    color: var(--accent);
+    animation: progress-spin 900ms linear infinite;
+}
+
+@keyframes progress-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.progress-track {
+    flex: 1;
+    height: 3px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #e9ece7;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--accent);
 }
 
 .actions-menu {

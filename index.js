@@ -24,6 +24,8 @@ const emptyState = document.querySelector("#empty-state");
 const activityCount = document.querySelector("#activity-count");
 const exportButton = document.querySelector("#export-button");
 const exportMessage = document.querySelector("#export-message");
+const exportProgress = document.querySelector("#export-progress");
+const progressFill = document.querySelector("#progress-fill");
 const actionsMenu = document.querySelector("#actions-menu");
 const actionsTrigger = document.querySelector("#actions-trigger");
 const actionsOptions = document.querySelector("#actions-options");
@@ -186,10 +188,29 @@ function ensureExcelJS() {
     });
 }
 
+function runExportProgress(duration = 1100) {
+    return new Promise((resolve) => {
+        exportProgress.hidden = false;
+        progressFill.style.transition = "none";
+        progressFill.style.width = "0%";
+
+        const start = performance.now();
+        const step = (now) => {
+            const ratio = Math.min((now - start) / duration, 1);
+            progressFill.style.width = `${Math.round(ratio * 100)}%`;
+            if (ratio < 1) {
+                requestAnimationFrame(step);
+            } else {
+                resolve();
+            }
+        };
+        requestAnimationFrame(step);
+    });
+}
+
 async function exportActivitiesToExcel() {
     exportMessage.hidden = true;
     exportMessage.textContent = "";
-    exportMessage.classList.remove("is-success");
 
     if (activities.length === 0) return;
 
@@ -199,7 +220,10 @@ async function exportActivitiesToExcel() {
         return;
     }
 
+    exportButton.disabled = true;
     try {
+        await runExportProgress();
+
         const workbook = new window.ExcelJS.Workbook();
         workbook.creator = "Miler Task";
         workbook.created = new Date();
@@ -254,13 +278,14 @@ async function exportActivitiesToExcel() {
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 60000);
-
-        exportMessage.textContent = "Archivo descargado correctamente.";
-        exportMessage.hidden = false;
     } catch (error) {
         console.error("No se pudo generar el archivo Excel de actividades.", error);
         exportMessage.textContent = "No se pudo generar el archivo Excel. Inténtalo de nuevo.";
         exportMessage.hidden = false;
+    } finally {
+        exportProgress.hidden = true;
+        progressFill.style.width = "0%";
+        exportButton.disabled = activities.length === 0;
     }
 }
 
