@@ -559,13 +559,6 @@ textarea:focus,
     height: 15px;
     flex: 0 0 auto;
     color: var(--accent);
-    animation: progress-spin 900ms linear infinite;
-}
-
-@keyframes progress-spin {
-    to {
-        transform: rotate(360deg);
-    }
 }
 
 .progress-track {
