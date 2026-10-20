@@ -32,6 +32,7 @@ const actionsOptions = document.querySelector("#actions-options");
 const actionOptions = [...actionsOptions.querySelectorAll(".action-option")];
 const importButton = document.querySelector("#import-button");
 const importInput = document.querySelector("#import-input");
+const themeToggle = document.querySelector("#theme-toggle");
 
 let selectedType = "";
 let storageReady = true;
@@ -53,10 +54,17 @@ function isValidDateString(value) {
         && date.getDate() === day;
 }
 
+let messageHideTimer = null;
+
 function setMessage(message, isError = false) {
     formMessageText.textContent = message;
     formMessage.hidden = !message;
     formMessage.classList.toggle("is-error", isError);
+
+    clearTimeout(messageHideTimer);
+    if (message && !isError) {
+        messageHideTimer = setTimeout(() => setMessage(""), 4000);
+    }
 }
 
 function isActivity(value) {
@@ -443,6 +451,63 @@ function chooseType(option) {
     closeTypeOptions(true);
     if (window.MillerIcons) window.MillerIcons.scan(typeLeading);
 }
+
+const THEME_STORAGE_KEY = "miler-task-theme";
+const THEME_ORDER = ["light", "dark", "system"];
+const THEME_LABELS = {
+    light: "Cambiar a tema oscuro",
+    dark: "Cambiar a tema del sistema",
+    system: "Cambiar a tema claro"
+};
+const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
+let themeMode = "system";
+
+function resolveTheme(mode) {
+    if (mode === "system") return systemThemeQuery.matches ? "dark" : "light";
+    return mode;
+}
+
+function applyTheme(mode) {
+    themeMode = mode;
+    const isDark = resolveTheme(mode) === "dark";
+    document.documentElement.dataset.theme = isDark ? "dark" : "light";
+
+    const iconName = mode === "system" ? "contrast" : isDark ? "sun" : "moon";
+    themeToggle.replaceChildren(makeIcon(iconName, ""));
+    themeToggle.setAttribute("aria-label", THEME_LABELS[mode]);
+    themeToggle.setAttribute("aria-pressed", String(isDark));
+    themeToggle.dataset.mode = mode;
+    if (window.MillerIcons) window.MillerIcons.scan(themeToggle);
+
+    const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+    if (themeColorMeta) themeColorMeta.content = isDark ? "#101410" : "#f6f7f5";
+}
+
+function getInitialTheme() {
+    try {
+        const stored = localStorage.getItem(THEME_STORAGE_KEY);
+        if (THEME_ORDER.includes(stored)) return stored;
+    } catch (error) {
+        console.warn("No se pudo leer la preferencia de tema.", error);
+    }
+    return "system";
+}
+
+applyTheme(getInitialTheme());
+
+systemThemeQuery.addEventListener("change", () => {
+    if (themeMode === "system") applyTheme("system");
+});
+
+themeToggle.addEventListener("click", () => {
+    const nextTheme = THEME_ORDER[(THEME_ORDER.indexOf(themeMode) + 1) % THEME_ORDER.length];
+    applyTheme(nextTheme);
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch (error) {
+        console.warn("No se pudo guardar la preferencia de tema.", error);
+    }
+});
 
 const activities = loadActivities();
 dateInput.value = localDateString();
