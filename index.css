@@ -966,6 +966,7 @@ textarea:focus,
     --surface: #191e19;
     --soft-green: #233026;
     color: var(--ink);
+    background: #101410;
 }
 
 [data-theme="dark"] body {
