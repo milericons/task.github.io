@@ -970,9 +970,7 @@ textarea:focus,
 }
 
 [data-theme="dark"] body {
-    background:
-        radial-gradient(ellipse at 78% 3%, rgba(56, 74, 57, 0.35), transparent 34rem),
-        #101410;
+    background: #101410;
 }
 
 [data-theme="dark"] .topbar {
